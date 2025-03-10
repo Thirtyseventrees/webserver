@@ -56,7 +56,7 @@ namespace mystl{
             return cur;
         }
 
-        difference_type operator-(const self& rhs){
+        difference_type operator-(const self& rhs) const{
             return num_element_of_buffer * (node - rhs.node) + (cur - first) - (rhs.cur - rhs.first);
         }
 
@@ -265,11 +265,11 @@ namespace mystl{
             return *(end() - 1);
         }
 
-        size_type size(){
+        size_type size() const{
             return _end - _begin;
         }
 
-        size_type capacity(){
+        size_type capacity() const{
             return _map_size * num_element_of_buffer;
         }
 

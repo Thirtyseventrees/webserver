@@ -1,6 +1,8 @@
 #include "../include/EpollWrapper.hpp"
 
-EpollWrapper::EpollWrapper() : epfd_(epoll_create(EPOLL_CLOEXEC)){
+const int MAXEVENTS = 4096;
+
+EpollWrapper::EpollWrapper() : epfd_(epoll_create(EPOLL_CLOEXEC)), events_(MAXEVENTS){
     assert(epfd_ > 0);
 };
 
@@ -30,4 +32,12 @@ bool EpollWrapper::del_fd(int fd){
     if(epoll_ctl(epfd_, EPOLL_CTL_DEL, fd, nullptr) < 0)
         return false;
     return true;
+};
+
+int EpollWrapper::wait(){
+    return epoll_wait(epfd_, &*events_.begin(), MAXEVENTS, -1);
+};
+
+mystl::vector<epoll_event>::iterator EpollWrapper::get_events(){
+    return events_.begin();
 };
