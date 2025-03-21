@@ -1,6 +1,6 @@
 # 编译器 & 编译选项
 CC = g++
-CFLAGS = -Wall -Iinclude -pthread
+CFLAGS = -Wall -Iinclude -pthread -lssl -lcrypto
 CFLAGS_CHECK = -Wall -Iinclude -pthread -fsanitize=address -fno-omit-frame-pointer
 
 # 目录定义

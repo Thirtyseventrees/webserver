@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .login-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .login-container h2 {
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .login-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .login-button:hover {
+            background-color: #218838;
+        }
+    </style>
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('登录成功，正在升级为 WebSocket...');
+                    upgradeToWebSocket();
+                } else {
+                    alert('登录失败: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function upgradeToWebSocket() {
+            const ws = new WebSocket('ws://172.23.197.6:12345');
+            
+            ws.onopen = function() {
+                console.log('WebSocket 连接成功');
+                ws.send(JSON.stringify({ type: 'auth', message: 'WebSocket 连接已建立' }));
+            };
+
+            ws.onmessage = function(event) {
+                console.log('收到 WebSocket 消息:', event.data);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket 错误:', error);
+            };
+
+            ws.onclose = function() {
+                console.log('WebSocket 连接关闭');
+            };
+        }
+    </script>
+</head>
+<body>
+    <div class="login-container">
+        <h2>登录</h2>
+        <form onsubmit="handleLogin(event)">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="用户名" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="密码" required>
+            </div>
+            <button type="submit" class="login-button">登录</button>
+        </form>
+    </div>
+</body>
+</html>

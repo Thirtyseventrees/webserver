@@ -6,7 +6,9 @@ EpollWrapper::EpollWrapper() : epfd_(epoll_create(EPOLL_CLOEXEC)), events_(MAXEV
     assert(epfd_ > 0);
 };
 
-EpollWrapper::~EpollWrapper(){};
+EpollWrapper::~EpollWrapper(){
+    close(epfd_);
+};
 
 bool EpollWrapper::add_fd(int fd, uint32_t events){
     struct epoll_event event;

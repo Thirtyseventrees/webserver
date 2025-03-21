@@ -4,7 +4,14 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <map>
 #include <unordered_map>
+#include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+
+#include "../include/file_utils.hpp"
 
 enum ProcessState {
     STATE_PARSE_URI = 1,
@@ -67,7 +74,7 @@ const std::unordered_map<std::string, HttpVersion> version_map_ = {
     {"HTTP/2.0", HttpVersion::HTTP_2_0}
 };
 
-const std::unordered_map<HttpMethod, std::string> method_to_string = {
+const std::map<HttpMethod, std::string> method_to_string = {
     {HttpMethod::GET, "GET"},
     {HttpMethod::POST, "POST"},
     {HttpMethod::PUT, "PUT"},
@@ -78,22 +85,73 @@ const std::unordered_map<HttpMethod, std::string> method_to_string = {
     {HttpMethod::UNKNOWN, "UNKNOWN"}
 };
 
-const std::unordered_map<HttpVersion, std::string> version_to_string = {
+const std::map<HttpVersion, std::string> version_to_string = {
     {HttpVersion::HTTP_1_0, "HTTP/1.0"},
     {HttpVersion::HTTP_1_1, "HTTP/1.1"},
     {HttpVersion::HTTP_2_0, "HTTP/2.0"},
     {HttpVersion::UNKNOW, "UNKNOWN"}
 };
 
+const std::unordered_map<std::string, std::string> mime_types = {
+    {".html", "text/html"},
+    {".htm", "text/html"},
+    {".css", "text/css"},
+    {".js", "application/javascript"},
+    {".json", "application/json"},
+    {".xml", "application/xml"},
+    {".txt", "text/plain"},
+    {".png", "image/png"},
+    {".jpg", "image/jpeg"},
+    {".jpeg", "image/jpeg"},
+    {".gif", "image/gif"},
+    {".svg", "image/svg+xml"},
+    {".ico", "image/x-icon"},
+    {".mp4", "video/mp4"},
+    {".mp3", "audio/mpeg"},
+    {".pdf", "application/pdf"},
+    {".zip", "application/zip"}
+};
+
+// Http Request
 struct HttpRequest{
     HttpMethod method_;
     HttpVersion version_;
     std::string url_;
     std::unordered_map<std::string, std::string> headers_;
+    bool keep_alive_;
     std::string body;
 };
 
 HttpRequest parse_HttpRequest(const std::string& request);
+std::string url_to_filePath(const std::string& url);
+std::string get_mime_type(const std::string &filename);
+
 std::string formatHttpRequest(const HttpRequest& request);
+
+std::string calculate_websocket_accept(const std::string& key);
+
+// Http Response
+class HttpResponse{
+    public:
+    HttpResponse() : version_("HTTP/1.1"), status_code_(200), reason_phrase_("OK") {}
+
+    void set_version(const std::string& version);
+    void set_statusCode(int code);
+    void set_reasonPhrase(const std::string& reason);
+    void set_header(const std::string& key, const std::string& value);
+    void set_body(const std::string& body);
+    std::string HttpResponse_to_string() const;
+
+    private:
+    std::string version_;
+    int status_code_;       // e.g. 200
+    std::string reason_phrase_;  // e.g. "OK"
+    std::unordered_map<std::string, std::string> headers_;
+    std::string body_;
+};
+
+HttpResponse get_response(const HttpRequest& http_request_);
+HttpResponse make_ok_response(const HttpRequest& http_request_);
+HttpResponse make_post_response(const HttpRequest& http_request_);
 
 #endif
