@@ -18,6 +18,11 @@ int main(int argc, char* argv[]){
     uint16_t http_port = 12345;
     uint16_t qt_port = 45678;
 
+    if(argc > 2){
+        ip = argv[1];
+        http_port = std::stoi(argv[2]);
+    }
+
     server s(ip, http_port, qt_port);
     s.start();
 

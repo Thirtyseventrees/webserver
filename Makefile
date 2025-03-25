@@ -17,7 +17,6 @@ TARGET = $(BIN_DIR)/main
 
 # 默认编译 & 运行主程序
 all: $(TARGET)
-	./$(TARGET)
 
 $(TARGET): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)

@@ -59,7 +59,9 @@
     let socket;
 
     function initWebSocket() {
-      const wsUrl = `ws://172.23.197.6:12345/upgrade?user=${encodeURIComponent(user)}`;
+      const host = window.location.hostname;
+      const port = 8080;
+      const wsUrl = `ws://${host}:${port}/upgrade?user=${encodeURIComponent(user)}`;
       socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {
