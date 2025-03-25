@@ -1,5 +1,67 @@
 #include "../include/HttpData.hpp"
 
+std::string utf8_decode(const std::string& str)
+{
+    std::string decoded;
+    decoded.reserve(str.size());  // 先分配足够空间
+
+    for (size_t i = 0; i < str.size(); ++i) {
+        char c = str[i];
+        if (c == '%') {
+            // 若剩余长度不足2，说明格式错误，这里简单处理
+            if (i + 2 < str.size()) {
+                // 解析 '%xx' 两位十六进制
+                std::string hexValue = str.substr(i+1, 2);
+                // 将hexValue转为int
+                unsigned int val;
+                std::istringstream iss(hexValue);
+                iss >> std::hex >> val;
+                // 放入decoded字符串
+                decoded.push_back(static_cast<char>(val));
+                i += 2; // 跳过这2位
+            }
+            // 若不够2位，这里你可根据需求处理错误
+        } 
+        else if (c == '+') {
+            // 有些情况下 '+' 表示空格
+            decoded.push_back(' ');
+        }
+        else {
+            // 普通字符原样加入
+            decoded.push_back(c);
+        }
+    }
+
+    return decoded;
+}
+
+void parse_url(HttpRequest& request, const std::string& url){
+    auto pos = url.find('?');
+    std::string qs;
+    if(pos == std::string::npos){
+        request.url_ = url;
+    }
+    else{
+        request.url_ = url.substr(0, pos);
+        qs = url.substr(pos + 1);
+    }
+    if(qs.empty())
+        return;
+    std::istringstream iss(qs);
+    std::string kv;
+    while(std::getline(iss, kv, '&')){
+        auto pos = kv.find('=');
+        if(pos == std::string::npos){
+            request.query_params_[kv] = "";
+        }
+        else{
+            auto key = kv.substr(0, pos);
+            auto value = utf8_decode(kv.substr(pos + 1));
+            request.query_params_[key] = value;
+        }
+    }
+}
+
 HttpRequest parse_HttpRequest(const std::string& request){
     std::istringstream stream(request);
     HttpRequest req;
@@ -7,10 +69,11 @@ HttpRequest parse_HttpRequest(const std::string& request){
 
     if(std::getline(stream, line)){
         std::istringstream line_stream(line);
-        std::string method_str, version_str;
-        line_stream >> method_str >> req.url_ >> version_str;
+        std::string method_str, url_str, version_str;
+        line_stream >> method_str >> url_str >> version_str;
         req.method_ = method_map_.find(method_str)->second;
         req.version_ = version_map_.find(version_str)->second;
+        parse_url(req, url_str);
     }
 
     while(std::getline(stream, line) && line != "\r"){
@@ -44,8 +107,8 @@ std::string url_to_filePath(const std::string& url){
     if(url.find("..") != std::string::npos){
         return "";
     }
-    if(url == "/"){
-        return "html/index.html";
+    if(file_path.find(url) != file_path.end()){
+        return file_path.at(url);
     }
 
     return url.substr(1);
@@ -151,13 +214,6 @@ std::string HttpResponse::HttpResponse_to_string() const{
     return response.str();
 }
 
-HttpResponse get_response(const HttpRequest& http_request_){
-    if(http_request_.method_ == GET)
-        return make_ok_response(http_request_);
-    if(http_request_.method_ == POST)
-        return make_post_response(http_request_);
-}
-
 HttpResponse make_ok_response(const HttpRequest& http_request_){
     HttpResponse http_response_;
 
@@ -172,17 +228,36 @@ HttpResponse make_ok_response(const HttpRequest& http_request_){
     return http_response_;
 }
 
-HttpResponse make_post_response(const HttpRequest& http_request_){
+HttpResponse make_login_response(const HttpRequest& http_request_){
     HttpResponse http_response_;
 
     std::string content_type_ = http_request_.headers_.at("Content-Type");
 
     if(content_type_ == "application/json"){
-        std::cout << http_request_.body << std::endl;
+        myjson json = myjson::parse(http_request_.body);
+        std::string username = json["username"];
+        std::string password = json["password"];
+        //to do
+        //check the password
+
         std::string response_body = R"({"success": true})";
         http_response_.set_version(version_to_string.at(http_request_.version_));
-        http_response_.set_header("Content-Type: ", "application/json");
+        http_response_.set_header("Content-Type", "application/json");
+        //to do
+        //implement cookie generate
+        http_response_.set_header("Set-Cookie", "session_id=12345; HttpOnly;");
         http_response_.set_body(response_body);
     }
+    return http_response_;
+}
+
+HttpResponse make_upgrade_response(const HttpRequest& http_request_){
+    HttpResponse http_response_;
+    std::string sec_key = http_request_.headers_.at("Sec-WebSocket-Key");
+    http_response_.set_statusCode(101);
+    http_response_.set_reasonPhrase("Switching Protocols");
+    http_response_.set_header("Upgrade", "websocket");
+    http_response_.set_header("Connection", "Upgrade");
+    http_response_.set_header("Sec-WebSocket-Accept", calculate_websocket_accept(sec_key));
     return http_response_;
 }

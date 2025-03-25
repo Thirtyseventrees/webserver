@@ -15,9 +15,10 @@ void test(int a){
 
 int main(int argc, char* argv[]){
     const char* ip = "172.23.197.6";
-    uint16_t port = 12345;
+    uint16_t http_port = 12345;
+    uint16_t qt_port = 45678;
 
-    server s(ip, port);
+    server s(ip, http_port, qt_port);
     s.start();
 
     // std::string http_request =

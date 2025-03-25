@@ -20,9 +20,29 @@ bool EpollWrapper::add_fd(int fd, uint32_t events){
     return true;
 };
 
+bool EpollWrapper::add_fd(void* conn, int fd, uint32_t events){
+    struct epoll_event event;
+    event.data.ptr = conn;
+    event.events = events;
+
+    if(epoll_ctl(epfd_, EPOLL_CTL_ADD, fd, &event) < 0)
+        return false;
+    return true;
+} 
+
 bool EpollWrapper::mod_fd(int fd, uint32_t events){
     struct epoll_event event;
     event.data.fd = fd;
+    event.events = events;
+
+    if(epoll_ctl(epfd_, EPOLL_CTL_MOD, fd, &event) < 0)
+        return false;
+    return true;
+};
+
+bool EpollWrapper::mod_fd(void* conn, int fd, uint32_t events){
+    struct epoll_event event;
+    event.data.ptr = conn;
     event.events = events;
 
     if(epoll_ctl(epfd_, EPOLL_CTL_MOD, fd, &event) < 0)

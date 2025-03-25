@@ -12,6 +12,7 @@
 #include <openssl/buffer.h>
 
 #include "../include/file_utils.hpp"
+#include "../include/myjson.hpp"
 
 enum ProcessState {
     STATE_PARSE_URI = 1,
@@ -112,16 +113,23 @@ const std::unordered_map<std::string, std::string> mime_types = {
     {".zip", "application/zip"}
 };
 
+const std::unordered_map<std::string, std::string> file_path = {
+    {"/", "html/index.html"},
+    {"/dashboard", "html/dashboard.html"}
+};
+
 // Http Request
 struct HttpRequest{
     HttpMethod method_;
     HttpVersion version_;
     std::string url_;
+    std::unordered_map<std::string, std::string> query_params_;
     std::unordered_map<std::string, std::string> headers_;
     bool keep_alive_;
     std::string body;
 };
 
+void parse_url(HttpRequest& request, const std::string& url);
 HttpRequest parse_HttpRequest(const std::string& request);
 std::string url_to_filePath(const std::string& url);
 std::string get_mime_type(const std::string &filename);
@@ -150,8 +158,8 @@ class HttpResponse{
     std::string body_;
 };
 
-HttpResponse get_response(const HttpRequest& http_request_);
 HttpResponse make_ok_response(const HttpRequest& http_request_);
-HttpResponse make_post_response(const HttpRequest& http_request_);
+HttpResponse make_login_response(const HttpRequest& http_request_);
+HttpResponse make_upgrade_response(const HttpRequest& http_request_);
 
 #endif
