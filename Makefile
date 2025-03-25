@@ -1,7 +1,8 @@
 # 编译器 & 编译选项
 CC = g++
-CFLAGS = -Wall -Iinclude -pthread -lssl -lcrypto
+CFLAGS = -Wall -Iinclude -pthread
 CFLAGS_CHECK = -Wall -Iinclude -pthread -fsanitize=address -fno-omit-frame-pointer
+LDFLAGS = -lssl -lcrypto
 
 # 目录定义
 SRC_DIR = src
@@ -20,7 +21,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
@@ -33,7 +34,7 @@ check: $(TARGET)_asan
 
 $(TARGET)_asan: $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS_CHECK) $^ -o $@
+	$(CC) $(CFLAGS_CHECK) $^ -o $@ $(LDFLAGS)
 	./$(TARGET)_asan
 
 clean:
