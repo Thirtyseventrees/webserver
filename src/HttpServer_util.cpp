@@ -58,7 +58,7 @@ void http_response(void* ptr, EpollWrapper &ew){
 
     std::string request_ = read_http_request(((connection*)ptr)->fd);
 
-    std::cout << request_ << std::endl;
+    //std::cout << request_ << std::endl;
 
     if(request_.size() == 0){
         //shutdown(fd, SHUT_WR);
@@ -106,8 +106,7 @@ void handle_dashboard(const HttpRequest& request, HttpResponse& response, void* 
 void handle_upgrade(const HttpRequest& request, HttpResponse& response, void* ptr){
     ((connection*)ptr)->conn_type = WEBSOCKET;
     response = make_upgrade_response(request);
-    users.insert(((connection*)ptr)->fd);
-    user_to_connection[request.query_params_.at("user")] = (connection*)ptr;
+    user_to_connection[request.query_params_.at("user")] = connections[((connection*)ptr)->fd];
     fd_to_user[((connection*)ptr)->fd] = request.query_params_.at("user");
 }
 

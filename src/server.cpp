@@ -19,9 +19,9 @@ void set_nonblocking(int fd){
     }
 }
 
-std::map<std::string, connection*> user_to_connection;
+std::map<std::string, std::shared_ptr<connection>> user_to_connection;
 std::unordered_map<int, std::string> fd_to_user;
-std::set<int> users;
+std::unordered_map<int, std::shared_ptr<connection>> connections;
 
 
 server::server(const char* ip, uint16_t http_port, uint16_t qt_port) : stop(false), ew(), thread_pool(24){
@@ -84,11 +84,13 @@ int server::start(){
                     struct sockaddr_in client_addr;
                     socklen_t client_len = sizeof(client_addr);
                     int connfd = accept(http_listen_sock_, (struct sockaddr*)&client_addr, &client_len);
-                    std::cout << "accept: " << connfd << std::endl;
                     if(connfd >= 0){
                         set_nonblocking(connfd);
-                        connection* http_conn = new connection(connfd, HTTP);
-                        ew.add_fd((void*)http_conn, connfd, EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLHUP | EPOLLET);
+                        std::cout << "accept fd = " << connfd << std::endl;
+                        auto conn = std::make_shared<connection>(connfd, HTTP);
+                        connections[connfd] = conn;
+                        //connection* http_conn = new connection(connfd, HTTP);
+                        ew.add_fd(conn.get(), connfd, EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLHUP | EPOLLET);
                     }
                     continue;
                 }
@@ -103,15 +105,16 @@ int server::start(){
             // othre sockets
             else{
                 if(ev & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)){
+                    int fd = ((connection*)ptr)->fd;
                     if(((connection*)ptr)->conn_type == WEBSOCKET){
-                        users.erase(((connection*)ptr)->fd);
                         user_to_connection.erase(fd_to_user[((connection*)ptr)->fd]);
                         fd_to_user.erase(((connection*)ptr)->fd);
                     }
                     std::cout << "[INFO] Connection closed by client: " << ((connection*)ptr)->fd << std::endl;
-                    ew.del_fd(((connection*)ptr)->fd);
-                    close(((connection*)ptr)->fd);
-                    delete (connection*)ptr;
+                    connections.erase(fd);
+                    close(fd);
+                    ew.del_fd(fd);
+                    //delete (connection*)ptr;
                 }
                 else if(ev & EPOLLIN){
                     switch (((connection*)ptr)->conn_type)

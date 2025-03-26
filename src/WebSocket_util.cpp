@@ -8,6 +8,9 @@ std::string decode_websocket_frame(const std::vector<uint8_t>& buffer) {
     uint8_t opcode = buffer[i] & 0x0F;
     i++;
 
+    if(opcode == 0x8)
+        return "";
+
     uint8_t mask = (buffer[i] & 0x80) >> 7;
     uint64_t payload_len = buffer[i] & 0x7F;
     i++;
@@ -81,10 +84,11 @@ void websocket_response(void* ptr, EpollWrapper &ew){
     std::string combined_msg = fd_to_user[((connection*)ptr)->fd] + ": " + msg;
     std::vector<uint8_t> frame = build_websocket_text_frame(combined_msg);
 
-    for(auto iter : user_to_connection){
-        if(iter.second->fd != ((connection*)ptr)->fd)
-            send(iter.second->fd, frame.data(), frame.size(), 0);
-    }
+    if(msg.size() != 0)
+        for(auto iter : user_to_connection){
+            if(iter.second && iter.second->fd != ((connection*)ptr)->fd)
+                send(iter.second->fd, frame.data(), frame.size(), 0);
+        }
 
     ew.mod_fd(ptr, ((connection*)ptr)->fd, EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLHUP | EPOLLET);
 }

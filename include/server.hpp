@@ -60,8 +60,8 @@ void set_nonblocking(int fd);
 std::string read_http_request(int fd);
 bool send_http_response(int fd, const std::string &response);
 
-extern std::map<std::string, connection*> user_to_connection;
+extern std::map<std::string, std::shared_ptr<connection>> user_to_connection;
 extern std::unordered_map<int, std::string> fd_to_user;
-extern std::set<int> users;
+extern std::unordered_map<int, std::shared_ptr<connection>> connections;
 
 #endif

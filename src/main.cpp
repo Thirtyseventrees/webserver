@@ -15,7 +15,7 @@ void test(int a){
 
 int main(int argc, char* argv[]){
     const char* ip = "172.23.197.6";
-    uint16_t http_port = 12345;
+    uint16_t http_port = 8080;
     uint16_t qt_port = 45678;
 
     if(argc > 2){
