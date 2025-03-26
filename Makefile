@@ -18,6 +18,7 @@ TARGET = $(BIN_DIR)/main
 
 # 默认编译 & 运行主程序
 all: $(TARGET)
+	./bin/main 0.0.0.0 8080
 
 $(TARGET): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
