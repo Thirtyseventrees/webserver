@@ -120,6 +120,8 @@ std::string get_mime_type(const std::string &filename){
         std::string ext = filename.substr(dot_pos);  // 提取后缀
         auto it = mime_types.find(ext);
         if (it != mime_types.end()) {
+            if(it->second == "text/html")
+                return it->second + "; charset=utf-8";
             return it->second;  // 返回匹配的 MIME 类型
         }
     }

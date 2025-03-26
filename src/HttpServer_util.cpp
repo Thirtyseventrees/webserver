@@ -71,7 +71,7 @@ void http_response(void* ptr, EpollWrapper &ew){
     HttpResponse http_response_;
 
     http_router[http_request_.url_](http_request_, http_response_, ptr);
-        
+
     // Send HTTP response
     send_http_response(((connection*)ptr)->fd, http_response_.HttpResponse_to_string());
 
