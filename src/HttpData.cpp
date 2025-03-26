@@ -224,7 +224,7 @@ HttpResponse make_ok_response(const HttpRequest& http_request_){
     std::string content = file_get_content(file_path_, mime_type_);
 
     http_response_.set_version(version_to_string.at(http_request_.version_));
-    http_response_.set_header("Content-Type: ", mime_type_);
+    http_response_.set_header("Content-Type", mime_type_);
     http_response_.set_body(content);
 
     return http_response_;
