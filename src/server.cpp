@@ -86,7 +86,7 @@ int server::start(){
                     int connfd = accept(http_listen_sock_, (struct sockaddr*)&client_addr, &client_len);
                     if(connfd >= 0){
                         set_nonblocking(connfd);
-                        std::cout << "accept fd = " << connfd << std::endl;
+                        //std::cout << "accept fd = " << connfd << std::endl;
                         auto conn = std::make_shared<connection>(connfd, HTTP);
                         connections[connfd] = conn;
                         //connection* http_conn = new connection(connfd, HTTP);
@@ -110,7 +110,7 @@ int server::start(){
                         user_to_connection.erase(fd_to_user[((connection*)ptr)->fd]);
                         fd_to_user.erase(((connection*)ptr)->fd);
                     }
-                    std::cout << "[INFO] Connection closed by client: " << ((connection*)ptr)->fd << std::endl;
+                    //std::cout << "[INFO] Connection closed by client: " << ((connection*)ptr)->fd << std::endl;
                     connections.erase(fd);
                     close(fd);
                     ew.del_fd(fd);

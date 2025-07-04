@@ -77,7 +77,7 @@ void http_response(void* ptr, EpollWrapper &ew){
 
     ew.mod_fd(ptr, ((connection*)ptr)->fd, EPOLLONESHOT | EPOLLIN | EPOLLERR | EPOLLRDHUP | EPOLLHUP | EPOLLET);
     if(!http_request_.keep_alive_ && http_request_.headers_.find("Upgrade") == http_request_.headers_.end()){
-        std::cout << "response shutdown" << std::endl;
+        //std::cout << "response shutdown" << std::endl;
         shutdown(((connection*)ptr)->fd, SHUT_WR);
     }
 }

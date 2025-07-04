@@ -37,7 +37,6 @@ class ThreadsGuard{
     mystl::vector<std::thread>& threads_;
 };
 
-
 class ThreadPool{
     public:
     using task_type = std::function<void()>;
